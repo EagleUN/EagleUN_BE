@@ -1,0 +1,115 @@
+version: "2.1"
+services:
+  walt:
+    build: ./walt
+    environment:
+      PORT: "5000"
+      SHOW_URLS: 'true'
+      ANA_URL: 'ana_ms'
+      ANA_PORT: '9090'
+      ANA_ENTRY: 'ana'
+      MULAN_URL: 'mulan_ms'
+      MULAN_PORT: '8080'
+      MULAN_ENTRY: 'shares'
+      RAPUNZEL_URL: 'rapunzel_ms'
+      RAPUNZEL_PORT: '5050'
+      MOANA_URL: 'moana_ms'
+      MOANA_PORT: '3000'
+      MOANA_ENTRY: 'feeds'
+      MERIDA_URL: 'merida_ms'
+      MERIDA_PORT: '3002'
+      MERIDA_ENTRY: 'posts'
+      VANELLOPE_URL: 'vanellope_ms'
+      VANELLOPE_PORT: '3001'
+  eagleun-proxy:
+    build: ./eagleun_proxy
+    depends_on:
+      - walt
+    ports:
+      - "80:80"
+  mulan_ms:
+    build: ./mulan 
+    depends_on:
+      mulan_db:
+        condition: service_healthy
+  mulan_db:
+    image: mysql
+    healthcheck:
+      test: "mysqlcheck -u$$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE"
+      interval: 20s
+      timeout: 5s
+      retries: 15
+    environment:
+        MYSQL_DATABASE: 'mulan_db'
+        MYSQL_USER: 'user'
+        MYSQL_PASSWORD: 'password'
+        MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+        - "3306"
+    volumes:
+      - my-db:/var/lib/mysql
+  rapunzel_ms:
+    build: ./rapunzel
+    command: python -u app.py
+    volumes:
+      - .:/todo
+    links:
+      - rapunzel_db
+  rapunzel_db:
+    image: mongo:3.0.2
+    ports:
+      - "27017"
+  ana_ms:
+    build:
+      context: ./ana/target
+      dockerfile: './ana/ana_service/Dockerfile'
+  merida_ms:
+    build: ./merida
+    environment:
+      - MONGO_DB_URL=mongodb://merida_db:27047/merida
+    depends_on:
+      - merida_db
+    command: bash -c "node build/Server.js"
+  merida_db:
+    image: mongo
+    ports:
+      - "27047"
+  moana_ms:
+    build: ./moana
+    environment:
+      - DB_HOST=postgres
+      - DB_USERNAME=moana
+      - DB_PASSWORD=yiuPh9eipiu2la9ie8gaifee
+      - DB_DATABASE=moana
+      - WAIT_HOSTS= moana_db:5432
+    links:
+      - moana_db
+    depends_on:
+      - moana_db
+  moana_db:
+    image: mdillon/postgis:10-alpine
+    environment:
+      - POSTGRES_USER=moana
+      - POSTGRES_PASSWORD=yiuPh9eipiu2la9ie8gaifee
+    ports:
+    - '5432:5432'
+  vanellope-ms:
+    build: ./vanellope 
+    command: bash -c "rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
+    depends_on:
+      - vanellope-db
+  vanellope-db:
+    image: postgres:9.6-alpine
+    ports:
+      - '25432:5432'
+    environment:
+      - POSTGRES_USER=usersms
+      - POSTGRES_PASSWORD=yiuPh9eipiu2la9ie8gaifec
+      - POSTGRES_DB=exeggcute
+    volumes:
+      - 'vanellope_data:/var/lib/postgresql/data'
+  
+volumes:
+  my-db:
+  vanellope_data:
+        
