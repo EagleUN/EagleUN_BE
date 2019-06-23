@@ -19,7 +19,7 @@ services:
       MERIDA_URL: 'merida'
       MERIDA_PORT: '3002'
       MERIDA_ENTRY: 'posts'
-      VANELLOPE_URL: 'vanellope_ms'
+      VANELLOPE_URL: 'vanellope-ms'
       VANELLOPE_PORT: '3001'
   eagleun-proxy:
     build: ./eagleun_proxy
@@ -62,7 +62,7 @@ services:
   ana_ms:
     build:
       context: ./ana/target
-      dockerfile: './ana/ana_service/Dockerfile'
+      dockerfile: './ana_service/Dockerfile'
   mongo:
     image: mongo
     ports:
@@ -85,7 +85,7 @@ services:
     - '5432'
 
   moana:
-    build: .
+    build: ./moana
     environment:
       - DB_HOST=postgres
       - DB_USERNAME=moana
@@ -98,7 +98,6 @@ services:
       - postgres
   vanellope-db:
     image: postgres:9.6-alpine
-    container_name: vanellopeContent
     ports:
       - '5432'
     environment:
@@ -109,7 +108,7 @@ services:
       - 'vanellope_data:/var/lib/postgresql/data'
 
   vanellope-ms:
-    build: .
+    build: ./vanellope
     #normal execution without modification about database
     command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
     #normal execution with restart database without seeds
