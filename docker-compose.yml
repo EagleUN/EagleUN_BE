@@ -13,10 +13,10 @@ services:
       MULAN_ENTRY: 'shares'
       RAPUNZEL_URL: 'rapunzel_ms'
       RAPUNZEL_PORT: '5050'
-      MOANA_URL: 'moana_ms'
+      MOANA_URL: 'moana'
       MOANA_PORT: '3000'
       MOANA_ENTRY: 'feeds'
-      MERIDA_URL: 'merida_ms'
+      MERIDA_URL: 'merida'
       MERIDA_PORT: '3002'
       MERIDA_ENTRY: 'posts'
       VANELLOPE_URL: 'vanellope_ms'
@@ -63,51 +63,62 @@ services:
     build:
       context: ./ana/target
       dockerfile: './ana/ana_service/Dockerfile'
-  merida_ms:
-    build: ./merida
-    environment:
-      - MONGO_DB_URL=mongodb://merida_db:27047/merida
-    depends_on:
-      - merida_db
-    command: bash -c "node build/Server.js"
-  merida_db:
+  mongo:
     image: mongo
     ports:
-      - "27047"
-  moana_ms:
-    build: ./moana
+      - '27017'
+  merida:
+    build: ./merida
     environment:
-      - DB_HOST=postgres
-      - DB_USERNAME=moana
-      - DB_PASSWORD=yiuPh9eipiu2la9ie8gaifee
-      - DB_DATABASE=moana
-      - WAIT_HOSTS= moana_db:5432
+      - MONGO_DB_URL=mongodb://mongo:27017/merida
+      - WAIT_HOSTS= mongo:27017
     links:
-      - moana_db
+      - mongo
     depends_on:
-      - moana_db
-  moana_db:
+      - mongo
+  postgres:
     image: mdillon/postgis:10-alpine
     environment:
       - POSTGRES_USER=moana
       - POSTGRES_PASSWORD=yiuPh9eipiu2la9ie8gaifee
     ports:
-    - '5432:5432'
-  vanellope-ms:
-    build: ./vanellope 
-    command: bash -c "rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
+    - '5432'
+
+  moana:
+    build: .
+    environment:
+      - DB_HOST=postgres
+      - DB_USERNAME=moana
+      - DB_PASSWORD=yiuPh9eipiu2la9ie8gaifee
+      - DB_DATABASE=moana
+      - WAIT_HOSTS= postgres:5432
+    links:
+      - postgres
     depends_on:
-      - vanellope-db
+      - postgres
   vanellope-db:
     image: postgres:9.6-alpine
+    container_name: vanellopeContent
     ports:
-      - '25432:5432'
+      - '5432'
     environment:
       - POSTGRES_USER=usersms
       - POSTGRES_PASSWORD=yiuPh9eipiu2la9ie8gaifec
       - POSTGRES_DB=exeggcute
     volumes:
       - 'vanellope_data:/var/lib/postgresql/data'
+
+  vanellope-ms:
+    build: .
+    #normal execution without modification about database
+    command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
+    #normal execution with restart database without seeds
+    #command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:drop && rails db:create && rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
+    #normal execution with restart database without seeds
+    #command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:drop && rails db:create && rails db:migrate && rails db:seed && rails s -p 3001 -b '0.0.0.0'"
+    depends_on:
+      - vanellope-db
+
   
 volumes:
   my-db:
