@@ -1,5 +1,53 @@
 version: "2.1"
 services:
+  eagleun-ldap:
+    image: osixia/openldap:1.1.8
+    environment:
+      COMPOSE_HTTP_TIMEOUT: 200
+      LDAP_LOG_LEVEL: "256"
+      LDAP_ORGANISATION: "Software Architecture"
+      LDAP_DOMAIN: "arqsoft.unal.edu.co"
+      LDAP_BASE_DN: ""
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_CONFIG_PASSWORD: "config"
+      LDAP_READONLY_USER: "false"
+      #LDAP_READONLY_USER_USERNAME: "readonly"
+      #LDAP_READONLY_USER_PASSWORD: "readonly"
+      LDAP_BACKEND: "hdb"
+      LDAP_TLS: "true"
+      LDAP_TLS_CRT_FILENAME: "ldap.crt"
+      LDAP_TLS_KEY_FILENAME: "ldap.key"
+      LDAP_TLS_CA_CRT_FILENAME: "ca.crt"
+      LDAP_TLS_ENFORCE: "false"
+      LDAP_TLS_CIPHER_SUITE: "SECURE256:-VERS-SSL3.0"
+      LDAP_TLS_PROTOCOL_MIN: "3.1"
+      LDAP_TLS_VERIFY_CLIENT: "demand"
+      LDAP_REPLICATION: "false"
+      #LDAP_REPLICATION_CONFIG_SYNCPROV: "binddn="cn=admin,cn=config" bindmethod=simple credentials=$LDAP_CONFIG_PASSWORD searchbase="cn=config" type=refreshAndPersist retry="60 +" timeout=1 starttls=critical"
+      #LDAP_REPLICATION_DB_SYNCPROV: "binddn="cn=admin,$LDAP_BASE_DN" bindmethod=simple credentials=$LDAP_ADMIN_PASSWORD searchbase="$LDAP_BASE_DN" type=refreshAndPersist interval=00:00:00:10 retry="60 +" timeout=1 starttls=critical"
+      #LDAP_REPLICATION_HOSTS: "#PYTHON2BASH:['ldap://ldap.example.org','ldap://ldap2.example.org']"
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
+      LDAP_SSL_HELPER_PREFIX: "ldap"
+    tty: true
+    stdin_open: true
+    volumes:
+      - /var/lib/ldap
+      - /etc/ldap/slapd.d
+      - /container/service/slapd/assets/certs/
+    ports:
+      - "389:389"
+      - "636:636"
+    hostname: "arqsoft.org"
+  phpldapadmin:
+    image: osixia/phpldapadmin:latest
+    container_name: phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: "eagle-ldap"
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8085:80"
+    links:
+      - eagleun-ldap
   walt:
     build: ./walt
     environment:
@@ -32,6 +80,8 @@ services:
     depends_on:
       mulan_db:
         condition: service_healthy
+    ports:
+      - "8080:8080"
   mulan_db:
     image: mysql
     healthcheck:
@@ -63,6 +113,8 @@ services:
     build:
       context: ./ana/target
       dockerfile: './ana_service/Dockerfile'
+    ports:
+      - "9090:9090"
   mongo:
     image: mongo
     ports:
@@ -76,6 +128,8 @@ services:
       - mongo
     depends_on:
       - mongo
+    ports:
+      - "3002:3002"
   postgres:
     image: mdillon/postgis:10-alpine
     environment:
@@ -83,7 +137,6 @@ services:
       - POSTGRES_PASSWORD=yiuPh9eipiu2la9ie8gaifee
     ports:
     - '5432'
-
   moana:
     build: ./moana
     environment:
@@ -96,6 +149,8 @@ services:
       - postgres
     depends_on:
       - postgres
+    ports:
+      - "3000:3000"
   vanellope-db:
     image: postgres:9.6-alpine
     ports:
@@ -117,7 +172,8 @@ services:
     #command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:drop && rails db:create && rails db:migrate && rails db:seed && rails s -p 3001 -b '0.0.0.0'"
     depends_on:
       - vanellope-db
-
+    ports:
+      - "3001:3001"
   
 volumes:
   my-db:
