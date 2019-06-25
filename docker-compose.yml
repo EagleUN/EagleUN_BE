@@ -111,8 +111,8 @@ services:
       - "27017"
   ana_ms:
     build:
-      context: ./ana/target
-      dockerfile: './ana_service/Dockerfile'
+      context: ./ana
+      dockerfile: './docker/Dockerfile'
     ports:
       - "9090:9090"
   mongo:
