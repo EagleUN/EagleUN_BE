@@ -69,6 +69,8 @@ services:
       MERIDA_ENTRY: 'posts'
       VANELLOPE_URL: 'vanellope-ms'
       VANELLOPE_PORT: '3001'
+    ports:
+      - "5000:5000"
   eagleun-proxy:
     build: ./eagleun_proxy
     depends_on:
