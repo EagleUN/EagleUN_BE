@@ -42,7 +42,7 @@ services:
     image: osixia/phpldapadmin:latest
     container_name: phpldapadmin
     environment:
-      PHPLDAPADMIN_LDAP_HOSTS: "eagle-ldap"
+      PHPLDAPADMIN_LDAP_HOSTS: "eagleun-ldap"
       PHPLDAPADMIN_HTTPS: "false"
     ports:
       - "8085:80"
@@ -69,6 +69,8 @@ services:
       MERIDA_ENTRY: 'posts'
       VANELLOPE_URL: 'vanellope-ms'
       VANELLOPE_PORT: '3001'
+    ports:
+      - "5000:5000"
   eagleun-proxy:
     build: ./eagleun_proxy
     depends_on:
