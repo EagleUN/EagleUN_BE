@@ -64,6 +64,14 @@ services:
       JAZMIN_ENTRY: 'soapservice'
       VANELLOPE_URL: 'vanellope-ms'
       VANELLOPE_PORT: '3001'
+      RAPUNZEL_URL: 'rapunzel_ms'st
+      RAPUNZEL_PORT: '5050'	    
+      MOANA_URL: 'moana'	      
+      MOANA_PORT: '3000'	
+      MOANA_ENTRY: 'feeds'	
+      MERIDA_URL: 'merida'	
+      MERIDA_PORT: '3002'	
+      MERIDA_ENTRY: 'posts'
     ports:
       - "5000:5000"
   eagleun-proxy:
