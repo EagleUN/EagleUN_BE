@@ -42,7 +42,7 @@ services:
     image: osixia/phpldapadmin:latest
     container_name: phpldapadmin
     environment:
-      PHPLDAPADMIN_LDAP_HOSTS: "eagle-ldap"
+      PHPLDAPADMIN_LDAP_HOSTS: "eagleun-ldap"
       PHPLDAPADMIN_HTTPS: "false"
     ports:
       - "8085:80"
@@ -174,6 +174,12 @@ services:
       - vanellope-db
     ports:
       - "3001:3001"
+
+  jazmin:
+    build: ./jazmin
+    ports:
+      - '3006:3006'
+
   
 volumes:
   my-db:
