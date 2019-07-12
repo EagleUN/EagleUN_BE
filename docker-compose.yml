@@ -35,8 +35,8 @@ services:
       - /etc/ldap/slapd.d
       - /container/service/slapd/assets/certs/
     ports:
-      - "389:389"
-      - "636:636"
+      - "389"
+      - "636"
     hostname: "arqsoft.org"
   phpldapadmin:
     image: osixia/phpldapadmin:latest
@@ -65,7 +65,7 @@ services:
       VANELLOPE_URL: 'vanellope-ms'
       VANELLOPE_PORT: '3001'
       RAPUNZEL_URL: 'rapunzel_ms'
-      RAPUNZEL_PORT: '5050'    
+      RAPUNZEL_PORT: '5050'
       MOANA_URL: 'moana'
       MOANA_PORT: '3000'
       MOANA_ENTRY: 'feeds'
@@ -73,7 +73,7 @@ services:
       MERIDA_PORT: '3002'
       MERIDA_ENTRY: 'posts'
     ports:
-      - "5000:5000"
+      - "5000"
   eagleun-proxy:
     build: ./eagleun_proxy
     depends_on:
@@ -86,7 +86,7 @@ services:
       mulan_db:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "8080"
   mulan_db:
     image: mysql
     healthcheck:
@@ -119,7 +119,7 @@ services:
       context: ./ana
       dockerfile: './docker/Dockerfile'
     ports:
-      - "9090:9090"
+      - "9090"
   mongo:
     image: mongo
     ports:
@@ -134,7 +134,7 @@ services:
     depends_on:
       - mongo
     ports:
-      - "3002:3002"
+      - "3002"
   postgres:
     image: mdillon/postgis:10-alpine
     environment:
@@ -155,7 +155,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - "3000:3000"
+      - "3000"
   vanellope-db:
     image: postgres:9.6-alpine
     ports:
@@ -178,7 +178,7 @@ services:
     depends_on:
       - vanellope-db
     ports:
-      - "3001:3001"
+      - "3001"
 
   jazmin:
     build: ./jazmin
