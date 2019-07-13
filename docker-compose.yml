@@ -1,4 +1,4 @@
-version: "2.1"
+version: "2"
 services:
   eagleun-ldap:
     image: osixia/openldap:1.1.8
@@ -49,7 +49,7 @@ services:
     links:
       - eagleun-ldap
   walt:
-    build: ./walt
+    image: eagleun/walt
     environment:
       PORT: "5000"
       SHOW_URLS: 'true'
@@ -73,29 +73,29 @@ services:
       MERIDA_PORT: '3002'
       MERIDA_ENTRY: 'posts'
     ports:
-      - "5000"
+      - "5000:5000"
   eagleun-proxy:
-    build: ./eagleun_proxy
+    image: eagleun/rev_proxy
     depends_on:
       - walt
     ports:
-      - "80:80"
-  mulan_ms:
-    build: ./mulan 
-    depends_on:
-      mulan_db:
-        condition: service_healthy
-    ports:
-      - "8080"
-  mulan_db:
-    image: mysql
-    healthcheck:
-      test: "mysqlcheck -u$$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE"
-      interval: 20s
-      timeout: 5s
-      retries: 15
+      - "8081:80"
+  mulan-ms:
+    image: eagleun/mulan_ms
     environment:
-        MYSQL_DATABASE: 'mulan_db'
+      DB_HOST: 'mulan-db'
+      DB_PORT: '3306'
+      DB_NAME: 'mulan-db'
+      DB_USER: 'user'
+      DB_PASSWORD: 'password'      
+    depends_on:
+      - mulan-db
+    ports:
+      - "8080:8080"
+  mulan-db:
+    image: mysql
+    environment:
+        MYSQL_DATABASE: 'mulan-db'
         MYSQL_USER: 'user'
         MYSQL_PASSWORD: 'password'
         MYSQL_ROOT_PASSWORD: 'password'
@@ -103,29 +103,27 @@ services:
         - "3306"
     volumes:
       - my-db:/var/lib/mysql
-  rapunzel_ms:
-    build: ./rapunzel
+  rapunzel-ms:
+    image: eagleun/rapunzel_ms
     command: python -u app.py
-    volumes:
-      - .:/todo
     links:
-      - rapunzel_db
-  rapunzel_db:
+      - rapunzel-db
+    ports:
+      - "5050:5050"
+  rapunzel-db:
     image: mongo:3.0.2
     ports:
       - "27017"
-  ana_ms:
-    build:
-      context: ./ana
-      dockerfile: './docker/Dockerfile'
+  ana-ms:
+    image: eagleun/ana_ms
     ports:
-      - "9090"
+      - "9090:9090"
   mongo:
     image: mongo
     ports:
       - '27017'
   merida:
-    build: ./merida
+    image: eagleun/merida_ms
     environment:
       - MONGO_DB_URL=mongodb://mongo:27017/merida
       - WAIT_HOSTS= mongo:27017
@@ -134,7 +132,7 @@ services:
     depends_on:
       - mongo
     ports:
-      - "3002"
+      - "3002:3002"
   postgres:
     image: mdillon/postgis:10-alpine
     environment:
@@ -143,7 +141,7 @@ services:
     ports:
     - '5432'
   moana:
-    build: ./moana
+    image: eagleun/moana_ms
     environment:
       - DB_HOST=postgres
       - DB_USERNAME=moana
@@ -155,7 +153,7 @@ services:
     depends_on:
       - postgres
     ports:
-      - "3000"
+      - "3000:3000"
   vanellope-db:
     image: postgres:9.6-alpine
     ports:
@@ -165,10 +163,10 @@ services:
       - POSTGRES_PASSWORD=yiuPh9eipiu2la9ie8gaifec
       - POSTGRES_DB=exeggcute
     volumes:
-      - 'vanellope_data:/var/lib/postgresql/data'
+      - 'vanellope-data:/var/lib/postgresql/data'
 
   vanellope-ms:
-    build: ./vanellope
+    image: eagleun/vanellope_ms
     #normal execution without modification about database
     command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
     #normal execution with restart database without seeds
@@ -178,15 +176,18 @@ services:
     depends_on:
       - vanellope-db
     ports:
-      - "3001"
-
+      - "3001:3001"
   jazmin:
-    build: ./jazmin
+    image: eagleun/jasmiz_ms
     ports:
       - '3006:3006'
+  web-app:
+    image: eagleun/web_app
+    ports:
+      -  '3080:80'
 
   
 volumes:
   my-db:
-  vanellope_data:
+  vanellope-data:
         
