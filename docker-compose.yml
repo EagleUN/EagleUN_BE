@@ -53,10 +53,10 @@ services:
     environment:
       PORT: "5000"
       SHOW_URLS: 'true'
-      ANA_URL: 'ana_ms'
+      ANA_URL: 'ana-ms'
       ANA_PORT: '9090'
       ANA_ENTRY: 'ana'
-      MULAN_URL: 'mulan_ms'
+      MULAN_URL: 'mulan-ms'
       MULAN_PORT: '8080'
       MULAN_ENTRY: 'shares'
       JAZMIN_URL: 'jazmin'
@@ -64,7 +64,7 @@ services:
       JAZMIN_ENTRY: 'soapservice'
       VANELLOPE_URL: 'vanellope-ms'
       VANELLOPE_PORT: '3001'
-      RAPUNZEL_URL: 'rapunzel_ms'
+      RAPUNZEL_URL: 'rapunzel-ms'
       RAPUNZEL_PORT: '5050'
       MOANA_URL: 'moana'
       MOANA_PORT: '3000'
