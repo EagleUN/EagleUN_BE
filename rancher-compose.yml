@@ -1,7 +1,7 @@
 version: '2'
 services:
-  mongo:
-    scale: 1
+  merida-db:
+    scale: 2
     start_on_create: true
   moana:
     scale: 2
@@ -33,7 +33,7 @@ services:
   web-app:
     scale: 2
     start_on_create: true
-  vanellope-db:
+  vanellope-db1:
     scale: 1
     start_on_create: true
   mulan-db:
@@ -46,7 +46,7 @@ services:
     scale: 1
     start_on_create: true
   eagleun-proxy:
-    scale: 4
+    scale: 1
     start_on_create: true
   ana-ms:
     scale: 2
