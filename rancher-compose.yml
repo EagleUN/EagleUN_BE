@@ -1,0 +1,53 @@
+version: '2'
+services:
+  merida-db:
+    scale: 2
+    start_on_create: true
+  moana:
+    scale: 2
+    start_on_create: true
+  walt:
+    scale: 4
+    start_on_create: true
+  rapunzel-db:
+    scale: 1
+    start_on_create: true
+  phpldapadmin:
+    scale: 1
+    start_on_create: true
+  merida:
+    scale: 4
+    start_on_create: true
+  vanellope-ms:
+    scale: 4
+    start_on_create: true
+  mulan-ms:
+    scale: 2
+    start_on_create: true
+  eagleun-ldap:
+    scale: 1
+    start_on_create: true
+  rapunzel-ms:
+    scale: 2
+    start_on_create: true
+  web-app:
+    scale: 2
+    start_on_create: true
+  vanellope-db1:
+    scale: 1
+    start_on_create: true
+  mulan-db:
+    scale: 1
+    start_on_create: true
+  jazmin:
+    scale: 1
+    start_on_create: true
+  postgres:
+    scale: 1
+    start_on_create: true
+  eagleun-proxy:
+    scale: 1
+    start_on_create: true
+  ana-ms:
+    scale: 2
+    start_on_create: true
