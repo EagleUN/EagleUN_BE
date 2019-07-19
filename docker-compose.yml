@@ -157,7 +157,7 @@ services:
       - DB_USERNAME=moana
       - DB_PASSWORD=yiuPh9eipiu2la9ie8gaifee
       - DB_DATABASE=moana
-      - WAIT_HOSTS= postgres:5432
+      - WAIT_HOSTS=moana-db:5432
     links:
       - moana-db
     depends_on:
