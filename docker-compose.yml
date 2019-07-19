@@ -1,211 +1,211 @@
-  version: "2"
-  services:
-    eagleun-ldap:
-      image: osixia/openldap:1.1.8
-      environment:
-        COMPOSE_HTTP_TIMEOUT: 200
-        LDAP_LOG_LEVEL: "256"
-        LDAP_ORGANISATION: "Software Architecture"
-        LDAP_DOMAIN: "arqsoft.unal.edu.co"
-        LDAP_BASE_DN: ""
-        LDAP_ADMIN_PASSWORD: "admin"
-        LDAP_CONFIG_PASSWORD: "config"
-        LDAP_READONLY_USER: "false"
-        #LDAP_READONLY_USER_USERNAME: "readonly"
-        #LDAP_READONLY_USER_PASSWORD: "readonly"
-        LDAP_BACKEND: "hdb"
-        LDAP_TLS: "true"
-        LDAP_TLS_CRT_FILENAME: "ldap.crt"
-        LDAP_TLS_KEY_FILENAME: "ldap.key"
-        LDAP_TLS_CA_CRT_FILENAME: "ca.crt"
-        LDAP_TLS_ENFORCE: "false"
-        LDAP_TLS_CIPHER_SUITE: "SECURE256:-VERS-SSL3.0"
-        LDAP_TLS_PROTOCOL_MIN: "3.1"
-        LDAP_TLS_VERIFY_CLIENT: "demand"
-        LDAP_REPLICATION: "false"
-        #LDAP_REPLICATION_CONFIG_SYNCPROV: "binddn="cn=admin,cn=config" bindmethod=simple credentials=$LDAP_CONFIG_PASSWORD searchbase="cn=config" type=refreshAndPersist retry="60 +" timeout=1 starttls=critical"
-        #LDAP_REPLICATION_DB_SYNCPROV: "binddn="cn=admin,$LDAP_BASE_DN" bindmethod=simple credentials=$LDAP_ADMIN_PASSWORD searchbase="$LDAP_BASE_DN" type=refreshAndPersist interval=00:00:00:10 retry="60 +" timeout=1 starttls=critical"
-        #LDAP_REPLICATION_HOSTS: "#PYTHON2BASH:['ldap://ldap.example.org','ldap://ldap2.example.org']"
-        LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
-        LDAP_SSL_HELPER_PREFIX: "ldap"
-      tty: true
-      stdin_open: true
-      volumes:
-        - /var/lib/ldap
-        - /etc/ldap/slapd.d
-        - /container/service/slapd/assets/certs/
-      ports:
-        - "389"
-        - "636"
-      hostname: "arqsoft.org"
-    phpldapadmin:
-      image: osixia/phpldapadmin:latest
-      container_name: phpldapadmin
-      environment:
-        PHPLDAPADMIN_LDAP_HOSTS: "eagleun-ldap"
-        PHPLDAPADMIN_HTTPS: "false"
-      ports:
-        - "8085:80"
-      links:
-        - eagleun-ldap
-    eagleun-api:
-      hostname: walt
-      image: eagleun/walt:latest
-      environment:
-        PORT: "5000"
-        SHOW_URLS: 'true'
-        ANA_URL: 'ana-ms'
-        ANA_PORT: '9090'
-        ANA_ENTRY: 'ana'
-        MULAN_URL: 'mulan-ms'
-        MULAN_PORT: '8080'
-        MULAN_ENTRY: 'shares'
-        JAZMIN_URL: 'jazmin'
-        JAZMIN_PORT: '3006'
-        JAZMIN_ENTRY: 'soapservice'
-        VANELLOPE_URL: 'vanellope-ms'
-        VANELLOPE_PORT: '3001'
-        RAPUNZEL_URL: 'rapunzel-ms'
-        RAPUNZEL_PORT: '5050'
-        MOANA_URL: 'moana'
-        MOANA_PORT: '3000'
-        MOANA_ENTRY: 'feeds'
-        MERIDA_URL: 'merida'
-        MERIDA_PORT: '3002'
-        MERIDA_ENTRY: 'posts'
-      ports:
-        - "5000"
-    eagleun-proxy:
-      image: eagleun/rev_proxy:latest
-      depends_on:
-        - walt
-      ports:
-        - "8081:80"
-      
-    mulan-ms:
-      image: eagleun/mulan_ms:latest
-      environment:
-        DB_HOST: 'mulan-db'
-        DB_PORT: '3306'
-        DB_NAME: 'mulan-db'
-        DB_USER: 'user'
-        DB_PASSWORD: 'password'      
-      depends_on:
-        - mulan-db
-      ports:
-        - "8080"
-      
-    mulan-db:
-      image: mysql:5.7
-      environment:
-          MYSQL_DATABASE: 'mulan-db'
-          MYSQL_USER: 'user'
-          MYSQL_PASSWORD: 'password'
-          MYSQL_ROOT_PASSWORD: 'password'
-      ports:
-          - "3306"
-      volumes:
-        - my-db:/var/lib/mysql
-    rapunzel-ms:
-      image: eagleun/rapunzel_ms:latest
-      command: python -u app.py
-      links:
-        - rapunzel-db
-      ports:
-        - "5050"
-    rapunzel-db:
-      image: mongo:3.0.2
-      ports:
-        - "27017"
-    ana-ms:
-      image: eagleun/ana_ms:latest
-      
-      ports:
-        - "9090"
-    merida-db:
-      image: mongo
-      ports:
-        - 27017
-      restart: always
-      entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
-    merida-ms:
-      image: eagleun/merida_ms:latest
-      environment:
-        - MONGO_DB_URL=mongodb://mongo:27017/merida
-        - WAIT_HOSTS= mongo:27017
-      links:
-        - merida-db
-      depends_on:
-        - merida-db
-      
-      ports:
-        - "3002:3002"
-    moana-db:
-      image: mdillon/postgis:10-alpine
-      environment:
-        - POSTGRES_USER=moana
-        - POSTGRES_PASSWORD=yiuPh9eipiu2la9ie8gaifee
-      
-      ports:
-      - '5432'
-    moana-ms:
-      image: eagleun/moana_ms:latest
-      environment:
-        - DB_HOST=moana-db
-        - DB_USERNAME=moana
-        - DB_PASSWORD=yiuPh9eipiu2la9ie8gaifee
-        - DB_DATABASE=moana
-        - WAIT_HOSTS= postgres:5432
-      links:
-        - moana-db
-      depends_on:
-        - moana-db
-      
-      ports:
-        - "3000:3000"
-    vanellope-db1:
-      image: mysql:5.7
-      ports:
-        - "3306"
-      environment:
-        MYSQL_ROOT_PASSWORD: yotas
-        MYSQL_USER: eagleun
-        MYSQL_PASSWORD: yotas
-        MYSQL_DATABASE: users
-        MYSQL_HOST: vanellope-db1
-      volumes:
-        - 'vanellope_data:/var/lib/mysql'
-
-
-    vanellope-ms:
-      image: eagleun/vanellope_ms:latest
-      #normal execution without modification about database
-      command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
-      #normal execution with restart database without seeds
-      #command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:drop && rails db:create && rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
-      #normal execution with restart database without seeds
-      #command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:drop && rails db:create && rails db:migrate && rails db:seed && rails s -p 3001 -b '0.0.0.0'"
-      depends_on:
-        - vanellope-db
-      
-      ports:
-        - "3001"
-    eagleun-interface:
-      image: eagleun/jasmiz_ms:latest
-      ports:
-        - '3006:3006'
-    eagleun-wa:
-      image: eagleun/web_app:latest
-      
-      ports:
-        -  '80'
-      environment:
-        - PROXY_URL=35.232.95.82
-        - PROXU_PORT=8081
-
+version: "2"
+services:
+  eagleun-ldap:
+    image: osixia/openldap:1.1.8
+    environment:
+      COMPOSE_HTTP_TIMEOUT: 200
+      LDAP_LOG_LEVEL: "256"
+      LDAP_ORGANISATION: "Software Architecture"
+      LDAP_DOMAIN: "arqsoft.unal.edu.co"
+      LDAP_BASE_DN: ""
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_CONFIG_PASSWORD: "config"
+      LDAP_READONLY_USER: "false"
+      #LDAP_READONLY_USER_USERNAME: "readonly"
+      #LDAP_READONLY_USER_PASSWORD: "readonly"
+      LDAP_BACKEND: "hdb"
+      LDAP_TLS: "true"
+      LDAP_TLS_CRT_FILENAME: "ldap.crt"
+      LDAP_TLS_KEY_FILENAME: "ldap.key"
+      LDAP_TLS_CA_CRT_FILENAME: "ca.crt"
+      LDAP_TLS_ENFORCE: "false"
+      LDAP_TLS_CIPHER_SUITE: "SECURE256:-VERS-SSL3.0"
+      LDAP_TLS_PROTOCOL_MIN: "3.1"
+      LDAP_TLS_VERIFY_CLIENT: "demand"
+      LDAP_REPLICATION: "false"
+      #LDAP_REPLICATION_CONFIG_SYNCPROV: "binddn="cn=admin,cn=config" bindmethod=simple credentials=$LDAP_CONFIG_PASSWORD searchbase="cn=config" type=refreshAndPersist retry="60 +" timeout=1 starttls=critical"
+      #LDAP_REPLICATION_DB_SYNCPROV: "binddn="cn=admin,$LDAP_BASE_DN" bindmethod=simple credentials=$LDAP_ADMIN_PASSWORD searchbase="$LDAP_BASE_DN" type=refreshAndPersist interval=00:00:00:10 retry="60 +" timeout=1 starttls=critical"
+      #LDAP_REPLICATION_HOSTS: "#PYTHON2BASH:['ldap://ldap.example.org','ldap://ldap2.example.org']"
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
+      LDAP_SSL_HELPER_PREFIX: "ldap"
+    tty: true
+    stdin_open: true
+    volumes:
+      - /var/lib/ldap
+      - /etc/ldap/slapd.d
+      - /container/service/slapd/assets/certs/
+    ports:
+      - "389"
+      - "636"
+    hostname: "arqsoft.org"
+  phpldapadmin:
+    image: osixia/phpldapadmin:latest
+    container_name: phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: "eagleun-ldap"
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8085:80"
+    links:
+      - eagleun-ldap
+  eagleun-api:
+    hostname: walt
+    image: eagleun/walt:latest
+    environment:
+      PORT: "5000"
+      SHOW_URLS: 'true'
+      ANA_URL: 'ana-ms'
+      ANA_PORT: '9090'
+      ANA_ENTRY: 'ana'
+      MULAN_URL: 'mulan-ms'
+      MULAN_PORT: '8080'
+      MULAN_ENTRY: 'shares'
+      JAZMIN_URL: 'jazmin'
+      JAZMIN_PORT: '3006'
+      JAZMIN_ENTRY: 'soapservice'
+      VANELLOPE_URL: 'vanellope-ms'
+      VANELLOPE_PORT: '3001'
+      RAPUNZEL_URL: 'rapunzel-ms'
+      RAPUNZEL_PORT: '5050'
+      MOANA_URL: 'moana'
+      MOANA_PORT: '3000'
+      MOANA_ENTRY: 'feeds'
+      MERIDA_URL: 'merida'
+      MERIDA_PORT: '3002'
+      MERIDA_ENTRY: 'posts'
+    ports:
+      - "5000"
+  eagleun-proxy:
+    image: eagleun/rev_proxy:latest
+    depends_on:
+      - walt
+    ports:
+      - "8081:80"
     
-  volumes:
-    my-db:
-    vanellope-data:
+  mulan-ms:
+    image: eagleun/mulan_ms:latest
+    environment:
+      DB_HOST: 'mulan-db'
+      DB_PORT: '3306'
+      DB_NAME: 'mulan-db'
+      DB_USER: 'user'
+      DB_PASSWORD: 'password'      
+    depends_on:
+      - mulan-db
+    ports:
+      - "8080"
+    
+  mulan-db:
+    image: mysql:5.7
+    environment:
+        MYSQL_DATABASE: 'mulan-db'
+        MYSQL_USER: 'user'
+        MYSQL_PASSWORD: 'password'
+        MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+        - "3306"
+    volumes:
+      - my-db:/var/lib/mysql
+  rapunzel-ms:
+    image: eagleun/rapunzel_ms:latest
+    command: python -u app.py
+    links:
+      - rapunzel-db
+    ports:
+      - "5050"
+    volumes:
+      - 'magic:/magic'
+  rapunzel-db:
+    image: mongo:3.0.2
+    ports:
+      - "27017"
+  ana-ms:
+    image: eagleun/ana_ms:latest
+    
+    ports:
+      - "9090"
+  merida-db:
+    image: mongo
+    ports:
+      - 27017
+    restart: always
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+  merida-ms:
+    image: eagleun/merida_ms:latest
+    environment:
+      - MONGO_DB_URL=mongodb://mongo:27017/merida
+      - WAIT_HOSTS= mongo:27017
+    links:
+      - merida-db
+    depends_on:
+      - merida-db
+    
+    ports:
+      - "3002:3002"
+  moana-db:
+    image: mdillon/postgis:10-alpine
+    environment:
+      - POSTGRES_USER=moana
+      - POSTGRES_PASSWORD=yiuPh9eipiu2la9ie8gaifee
+    
+    ports:
+    - '5432'
+  moana-ms:
+    image: eagleun/moana_ms:latest
+    environment:
+      - DB_HOST=moana-db
+      - DB_USERNAME=moana
+      - DB_PASSWORD=yiuPh9eipiu2la9ie8gaifee
+      - DB_DATABASE=moana
+      - WAIT_HOSTS= postgres:5432
+    links:
+      - moana-db
+    depends_on:
+      - moana-db
+    
+    ports:
+      - "3000:3000"
+  vanellope-db1:
+    image: mysql:5.7
+    ports:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: yotas
+      MYSQL_USER: eagleun
+      MYSQL_PASSWORD: yotas
+      MYSQL_DATABASE: users
+      MYSQL_HOST: vanellope-db1
+    volumes:
+      - 'vanellope_data:/var/lib/mysql'
 
 
+  vanellope-ms:
+    image: eagleun/vanellope_ms:latest
+    #normal execution without modification about database
+    command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
+    #normal execution with restart database without seeds
+    #command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:drop && rails db:create && rails db:migrate && rails s -p 3001 -b '0.0.0.0'"
+    #normal execution with restart database without seeds
+    #command: bash -c "gem uninstall bundler && gem update bundler && bundler update --bundler && bundler install && rails db:drop && rails db:create && rails db:migrate && rails db:seed && rails s -p 3001 -b '0.0.0.0'"
+    depends_on:
+      - vanellope-db
+    
+    ports:
+      - "3001"
+  eagleun-interface:
+    image: eagleun/jasmiz_ms:latest
+    ports:
+      - '3006:3006'
+  eagleun-wa:
+    image: eagleun/web_app:latest
+    
+    ports:
+      -  '80'
+    environment:
+      - PROXY_URL=35.232.95.82
+      - PROXU_PORT=8081
+
+  
+volumes:
+  my-db:
+  vanellope-data:
